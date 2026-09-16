@@ -79,17 +79,23 @@ export class OrderFormComponent {
   protected readonly currentBid = computed(() => this.quotes()[this.selectedSymbol()]?.b ?? null);
 
   constructor() {
-    // Pre-fill the open price with the current bid once per picked symbol – as soon as a quote
-    // exists (it may arrive a moment after the pick). Later ticks never overwrite the field;
-    // the "bid: …" button refreshes it on demand.
-    let filledFor: string | null = null;
+    // Picking a symbol clears the open price and pre-fills it with that symbol's bid once a
+    // quote exists (it may arrive a moment after the pick). Later ticks never overwrite the
+    // field and a manually typed value is kept; the "bid: …" button refreshes it on demand.
+    const openPrice = this.form.controls.openPrice;
+    let lastSymbol = this.form.controls.symbol.value;
+    let filled = false;
     effect(() => {
       const symbol = this.selectedSymbol();
       const bid = this.currentBid();
-      if (filledFor !== null && filledFor !== symbol) filledFor = null;
-      if (bid !== null && filledFor === null && this.form.controls.openPrice.pristine) {
-        this.form.controls.openPrice.setValue(bid);
-        filledFor = symbol;
+      if (symbol !== lastSymbol) {
+        lastSymbol = symbol;
+        filled = false;
+        openPrice.reset(null);
+      }
+      if (!filled && bid !== null && openPrice.pristine) {
+        openPrice.setValue(bid);
+        filled = true;
       }
     });
   }
