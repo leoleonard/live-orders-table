@@ -11,7 +11,7 @@ export class QuotesSocketStub implements Pick<
   readonly quotes$ = new Subject<Quote[]>();
   readonly connected = signal(false);
   readonly symbols = new Set<string>();
-  readonly calls: Array<{ type: 'add' | 'remove'; symbols: string[] }> = [];
+  readonly calls: { type: 'add' | 'remove'; symbols: string[] }[] = [];
 
   setSymbols(symbols: readonly string[]): void {
     const wanted = new Set(symbols);
