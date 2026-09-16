@@ -20,7 +20,10 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
 1. **`@ngrx/signals` (Signal Store) zamiast klasycznego NgRx Store.** Aplikacja jest
    mała i w całości oparta na signals (zoneless, `OnPush`). Signal Store daje jawny,
    typowany stan i metody bez akcji/reducerów/efektów. `OrdersStore` korzysta z
-   `withEntities`, `QuotesStore` trzyma mapę kwotowań, `ThemeStore` motyw.
+   `withEntities` (edytowalna lista zleceń) i z `resource()` Angulara (stabilne od v22)
+   dla jednorazowego pobrania danych – status/błąd/`reload()` są za darmo, a `effect`
+   w `withHooks` przepisuje wynik do encji. `QuotesStore` trzyma mapę kwotowań, a stan
+   socketu wystawia przez `withProps`; `ThemeStore` motyw.
 2. **Logika domenowa jako czyste funkcje** (`core/domain`): `calculateProfit` i
    `buildOrderGroups` nie znają Angulara, więc są trywialne w testowaniu; store'y
    przechowują tylko surowe dane, a widok (grupy + profit) jest `computed()` w
@@ -41,16 +44,28 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
    ręczny wybór zapisywany w `localStorage` i od tego momentu zmiany systemowe
    są ignorowane.
 8. **Formularz**: typowany `FormGroup` z `NonNullableFormBuilder`; `openPrice`
-   podąża za aktualnym bidem, dopóki użytkownik go nie zmieni. Nowe zlecenie dostaje
+   jest wypełniany aktualnym bidem przy zmianie symbolu (`effect` czyta kwotowania
+   przez `untracked`, żeby tick z WebSocketu nie nadpisywał pola, które użytkownik
+   właśnie edytuje); przycisk „bid: …” odświeża cenę na żądanie. Nowe zlecenie dostaje
    `id = max(id) + 1` i `swap = 0`.
+9. **Tabela**: stan „rozwinięte grupy” to `linkedSignal` zależny od listy grup, więc
+   symbol zamkniętej grupy jest automatycznie usuwany z zestawu. Rozwijanie działa
+   kliknięciem w wiersz (wymaganie) i przyciskiem z `aria-expanded` dla klawiatury /
+   czytników – bez `role="button"` na `<tr>`.
 
-### Co odrzuciłem z propozycji AI
+### Co odrzuciłem / zmieniłem po code review
 
 - pierwszą wersję API `QuotesStore.syncSubscriptions(symbols, previous)`, która
   wymagała przekazywania poprzedniego stanu – zastąpiona przez `setSymbols()` w
   serwisie socketu, który sam zna swoje subskrypcje;
 - `[disabled]` na przycisku „Dodaj zlecenie” – gorsza dostępność, a walidacja po
-  `markAllAsTouched()` i tak pokazuje błędy.
+  `markAllAsTouched()` i tak pokazuje błędy;
+- pierwszą wersję ładowania danych przez `rxMethod` + `tapResponse` z ręcznie
+  utrzymywanym `status`/`error` – zastąpiona przez `resource()`;
+- reconnect WebSocketu tylko przez `retry` – `WebSocketSubject` przy czystym
+  zamknięciu przez serwer *kończy* strumień, więc potrzebny jest też `repeat`;
+- `role="button"` + `keydown` na `<tr>` – klawisze na zagnieżdżonym przycisku
+  „zamknij” przechodziły do wiersza i przełączały grupę; `<tr>` tracił semantykę.
 
 ## Co bym zmienił mając więcej czasu
 
@@ -62,5 +77,4 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
 - throttling aktualizacji z WebSocketu (np. `auditTime(100)`), żeby nie renderować
   częściej niż to potrzebne;
 - i18n (teksty są po polsku na sztywno), formatowanie liczb z `LOCALE_ID`;
-- sortowanie / filtrowanie kolumn, potwierdzenie przed zamknięciem grupy;
-- ESLint z regułami Angulara (scaffold CLI go nie dodaje).
+- sortowanie / filtrowanie kolumn, potwierdzenie przed zamknięciem grupy.
