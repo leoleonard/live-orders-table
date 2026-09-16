@@ -10,9 +10,12 @@
       @case ('loading') {
         <span class="muted">Ładowanie zleceń…</span>
       }
+      @case ('reloading') {
+        <span class="muted">Ładowanie zleceń…</span>
+      }
       @case ('error') {
         <span class="error">Nie udało się pobrać danych: {{ ordersStore.error() }}</span>
-        <button type="button" class="retry" (click)="ordersStore.load()">Spróbuj ponownie</button>
+        <button type="button" class="retry" (click)="ordersStore.reload()">Spróbuj ponownie</button>
       }
       @default {
         <span class="muted">

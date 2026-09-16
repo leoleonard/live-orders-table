@@ -1,12 +1,12 @@
-import { computed, inject } from '@angular/core';
-import { tapResponse } from '@ngrx/operators';
+import { HttpErrorResponse } from '@angular/common/http';
+import { computed, effect, inject, resource } from '@angular/core';
 import {
   patchState,
   signalStore,
   withComputed,
   withHooks,
   withMethods,
-  withState,
+  withProps,
 } from '@ngrx/signals';
 import {
   addEntity,
@@ -15,73 +15,57 @@ import {
   setAllEntities,
   withEntities,
 } from '@ngrx/signals/entities';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { pipe, switchMap, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { OrdersApi } from '../api/orders-api.service';
 import { ContractSizeBySymbol } from '../domain/order-groups';
-import { ContractType, Instrument, NewOrder, Order } from '../models';
+import { NewOrder, Order } from '../models';
 
-export type LoadStatus = 'idle' | 'loading' | 'loaded' | 'error';
-
-interface OrdersState {
-  instruments: Instrument[];
-  contractTypes: ContractType[];
-  /** Symbols present in the originally loaded order list (used by the "new order" form). */
-  knownSymbols: string[];
-  status: LoadStatus;
-  error: string | null;
+/** Turns a resource error (possibly wrapping an `HttpErrorResponse`) into a readable message. */
+export function describeLoadError(error: unknown): string {
+  if (error instanceof HttpErrorResponse) return error.message;
+  if (error instanceof Error) {
+    return error.cause instanceof HttpErrorResponse ? error.cause.message : error.message;
+  }
+  return 'Failed to load orders';
 }
-
-const initialState: OrdersState = {
-  instruments: [],
-  contractTypes: [],
-  knownSymbols: [],
-  status: 'idle',
-  error: null,
-};
 
 export const OrdersStore = signalStore(
   { providedIn: 'root' },
-  withState(initialState),
+  // Orders are editable local state (add / close), so they live as entities …
   withEntities<Order>(),
-  withComputed(({ entities, instruments, contractTypes, status }) => ({
+  // … while the one-off bootstrap fetch is an Angular `resource` (status / error / reload for free).
+  withProps((_, api = inject(OrdersApi)) => ({
+    bootstrap: resource({ loader: () => firstValueFrom(api.loadAll()) }),
+  })),
+  withComputed(({ entities, bootstrap }) => ({
     orders: entities,
-    isLoading: computed(() => status() === 'loading'),
+    status: bootstrap.status,
+    isLoading: bootstrap.isLoading,
+    error: computed(() => (bootstrap.error() ? describeLoadError(bootstrap.error()) : null)),
     /** Distinct symbols that currently have at least one open order. */
     activeSymbols: computed(() => [...new Set(entities().map((o) => o.symbol))]),
+    /** Symbols present in the originally loaded order list (used by the "new order" form). */
+    knownSymbols: computed(() =>
+      bootstrap.hasValue()
+        ? [...new Set(bootstrap.value().orders.map((o) => o.symbol))].sort()
+        : [],
+    ),
     contractSizeBySymbol: computed<ContractSizeBySymbol>(() => {
-      const sizeByType = new Map(contractTypes().map((ct) => [ct.contractType, ct.contractSize]));
+      if (!bootstrap.hasValue()) return {};
+      const { instruments, contractTypes } = bootstrap.value();
+      const sizeByType = new Map(contractTypes.map((ct) => [ct.contractType, ct.contractSize]));
       return Object.fromEntries(
-        instruments()
+        instruments
           .map((i) => [i.symbol, sizeByType.get(i.contractType)] as const)
           .filter((entry): entry is readonly [string, number] => entry[1] !== undefined),
       );
     }),
   })),
-  withMethods((store, api = inject(OrdersApi)) => ({
-    load: rxMethod<void>(
-      pipe(
-        tap(() => patchState(store, { status: 'loading', error: null })),
-        switchMap(() =>
-          api.loadAll().pipe(
-            tapResponse({
-              next: ({ orders, instruments, contractTypes }) =>
-                patchState(store, setAllEntities(orders), {
-                  instruments,
-                  contractTypes,
-                  knownSymbols: [...new Set(orders.map((o) => o.symbol))].sort(),
-                  status: 'loaded',
-                }),
-              error: (err: unknown) =>
-                patchState(store, {
-                  status: 'error',
-                  error: err instanceof Error ? err.message : 'Failed to load orders',
-                }),
-            }),
-          ),
-        ),
-      ),
-    ),
+  withMethods((store) => ({
+    /** Re-fetches everything; local additions / closures are discarded. */
+    reload(): void {
+      store.bootstrap.reload();
+    },
 
     /** Adds a locally created order; returns the created entity. */
     addOrder(input: NewOrder): Order {
@@ -110,7 +94,12 @@ export const OrdersStore = signalStore(
   })),
   withHooks({
     onInit(store) {
-      store.load();
+      // Seed the editable entity list every time the bootstrap resource resolves.
+      effect(() => {
+        if (store.bootstrap.hasValue()) {
+          patchState(store, setAllEntities(store.bootstrap.value().orders));
+        }
+      });
     },
   }),
 );
