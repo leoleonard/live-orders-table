@@ -1,5 +1,4 @@
-import { DOCUMENT } from '@angular/common';
-import { effect, inject } from '@angular/core';
+import { DOCUMENT, effect, inject } from '@angular/core';
 import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
 
 export type Theme = 'light' | 'dark';

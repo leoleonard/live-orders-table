@@ -1,6 +1,13 @@
 import { inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withHooks,
+  withMethods,
+  withProps,
+  withState,
+} from '@ngrx/signals';
 import { QuotesSocket } from '../api/quotes-socket.service';
 import { Quote, QuotesBySymbol } from '../models';
 
@@ -11,9 +18,11 @@ interface QuotesState {
 export const QuotesStore = signalStore(
   { providedIn: 'root' },
   withState<QuotesState>({ quotes: {} }),
-  withMethods((store, socket = inject(QuotesSocket)) => ({
+  withProps((_, socket = inject(QuotesSocket)) => ({
+    /** Whether the quotes socket is currently open. */
     connected: socket.connected,
-
+  })),
+  withMethods((store, socket = inject(QuotesSocket)) => ({
     /** Keeps live quotes flowing exactly for `symbols` (subscribes new ones, drops stale ones). */
     watchSymbols(symbols: readonly string[]): void {
       socket.setSymbols(symbols);
