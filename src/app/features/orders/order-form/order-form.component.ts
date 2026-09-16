@@ -7,9 +7,8 @@ import {
   inject,
   input,
   output,
-  untracked,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { outputFromObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -73,18 +72,24 @@ export class OrderFormComponent {
     initialValue: this.form.controls.symbol.value,
   });
 
+  /** Symbol currently picked in the form – lets the parent keep a live quote for it. */
+  readonly symbolChange = outputFromObservable(this.form.controls.symbol.valueChanges);
+
   /** Current bid of the selected symbol (or `null` when unknown). */
   protected readonly currentBid = computed(() => this.quotes()[this.selectedSymbol()]?.b ?? null);
 
   constructor() {
-    // Pre-fill the open price with the current bid when the user picks another symbol.
-    // `quotes` is read untracked so a live tick never overwrites a value the user is about to edit;
+    // Pre-fill the open price with the current bid once per picked symbol – as soon as a quote
+    // exists (it may arrive a moment after the pick). Later ticks never overwrite the field;
     // the "bid: …" button refreshes it on demand.
+    let filledFor: string | null = null;
     effect(() => {
       const symbol = this.selectedSymbol();
-      const bid = untracked(() => this.quotes()[symbol]?.b);
-      if (bid !== undefined && this.form.controls.openPrice.pristine) {
+      const bid = this.currentBid();
+      if (filledFor !== null && filledFor !== symbol) filledFor = null;
+      if (bid !== null && filledFor === null && this.form.controls.openPrice.pristine) {
         this.form.controls.openPrice.setValue(bid);
+        filledFor = symbol;
       }
     });
   }

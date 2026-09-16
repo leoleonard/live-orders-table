@@ -37,7 +37,7 @@
           </td>
           <td>
             <span class="symbol">{{ group.symbol }}</span>
-            <span class="badge" [attr.aria-label]="group.count + ' zleceń'">{{ group.count }}</span>
+            <span class="badge">{{ group.count }}<span class="sr-only"> zleceń</span></span>
           </td>
           <td></td>
           <td></td>
@@ -47,7 +47,7 @@
           <td class="num">{{ group.swap | number: '1.2-5' }}</td>
           <td class="num" [appProfit]="group.profit">
             @if (group.profit !== null) {
-              {{ group.profit | number: '1.2-4' }}
+              {{ group.profit | number: '1.2-5' }}
             } @else {
               <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
             }
@@ -81,7 +81,7 @@
               <td class="num">{{ order.swap | number: '1.2-5' }}</td>
               <td class="num" [appProfit]="order.profit">
                 @if (order.profit !== null) {
-                  {{ order.profit | number: '1.2-4' }}
+                  {{ order.profit | number: '1.2-5' }}
                 } @else {
                   <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
                 }

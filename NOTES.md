@@ -44,10 +44,12 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
    ręczny wybór zapisywany w `localStorage` i od tego momentu zmiany systemowe
    są ignorowane.
 8. **Formularz**: typowany `FormGroup` z `NonNullableFormBuilder`; `openPrice`
-   jest wypełniany aktualnym bidem przy zmianie symbolu (`effect` czyta kwotowania
-   przez `untracked`, żeby tick z WebSocketu nie nadpisywał pola, które użytkownik
-   właśnie edytuje); przycisk „bid: …” odświeża cenę na żądanie. Nowe zlecenie dostaje
-   `id = max(id) + 1` i `swap = 0`.
+   jest wypełniany aktualnym bidem **raz** po wyborze symbolu (gdy tylko kwotowanie
+   jest dostępne – kolejne ticki nie nadpisują pola, które użytkownik edytuje);
+   przycisk „bid: …” odświeża cenę na żądanie. Wybrany w formularzu symbol jest
+   dopisywany do listy subskrybowanych na WebSockecie, więc cena jest dostępna także
+   dla symbolu bez otwartych zleceń. Nowe zlecenie dostaje `id = max(id) + 1`
+   i `swap = 0`.
 9. **Tabela**: stan „rozwinięte grupy” to `linkedSignal` zależny od listy grup, więc
    symbol zamkniętej grupy jest automatycznie usuwany z zestawu. Rozwijanie działa
    kliknięciem w wiersz (wymaganie) i przyciskiem z `aria-expanded` dla klawiatury /

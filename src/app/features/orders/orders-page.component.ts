@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { buildOrderGroups } from '../../core/domain/order-groups';
 import { NewOrder } from '../../core/models';
 import { OrdersStore } from '../../core/store/orders.store';
@@ -28,9 +35,19 @@ export class OrdersPageComponent {
     ),
   );
 
+  /** Symbol picked in the "new order" form (may have no open orders yet). */
+  protected readonly formSymbol = signal('');
+
+  /** Symbols that need a live quote: every open order + whatever the form is pointing at. */
+  private readonly watchedSymbols = computed(() => {
+    const symbols = new Set(this.ordersStore.activeSymbols());
+    if (this.formSymbol()) symbols.add(this.formSymbol());
+    return [...symbols];
+  });
+
   constructor() {
-    // Keep the WebSocket subscription list in sync with the symbols that still have open orders.
-    effect(() => this.quotesStore.watchSymbols(this.ordersStore.activeSymbols()));
+    // Keep the WebSocket subscription list in sync with what is on screen.
+    effect(() => this.quotesStore.watchSymbols(this.watchedSymbols()));
   }
 
   protected onCloseOrder(id: number): void {
