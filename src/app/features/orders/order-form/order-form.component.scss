@@ -19,6 +19,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  align-self: start;
 }
 
 .field__label {
@@ -37,10 +38,15 @@
 
 input,
 select {
-  padding: 0.45rem 0.6rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.375rem; // same height for text/number/datetime inputs and selects
+  margin: 0;
+  padding: 0 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-input-bg);
+  line-height: normal;
 
   &:focus-visible {
     outline: 2px solid var(--color-accent);

@@ -7,6 +7,7 @@ import {
   inject,
   input,
   output,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -76,10 +77,12 @@ export class OrderFormComponent {
   protected readonly currentBid = computed(() => this.quotes()[this.selectedSymbol()]?.b ?? null);
 
   constructor() {
-    // Pre-fill the open price with the current bid whenever the user picks another symbol.
+    // Pre-fill the open price with the current bid when the user picks another symbol.
+    // `quotes` is read untracked so a live tick never overwrites a value the user is about to edit;
+    // the "bid: …" button refreshes it on demand.
     effect(() => {
       const symbol = this.selectedSymbol();
-      const bid = this.quotes()[symbol]?.b;
+      const bid = untracked(() => this.quotes()[symbol]?.b);
       if (bid !== undefined && this.form.controls.openPrice.pristine) {
         this.form.controls.openPrice.setValue(bid);
       }
