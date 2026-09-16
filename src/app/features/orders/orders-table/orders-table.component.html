@@ -1,0 +1,110 @@
+<div class="table-wrapper">
+  <table class="orders">
+    <thead>
+      <tr>
+        <th class="col-toggle" scope="col"><span class="sr-only">Rozwiń</span></th>
+        <th scope="col">Symbol</th>
+        <th scope="col">Order ID</th>
+        <th scope="col">Side</th>
+        <th class="num" scope="col">Size</th>
+        <th scope="col">Open Time</th>
+        <th class="num" scope="col">Open Price</th>
+        <th class="num" scope="col">Swap</th>
+        <th class="num" scope="col">Profit</th>
+        <th class="col-actions" scope="col"><span class="sr-only">Akcje</span></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (group of groups(); track group.symbol) {
+        <tr
+          class="row row--group"
+          [class.row--expanded]="isExpanded(group.symbol)"
+          tabindex="0"
+          role="button"
+          [attr.aria-expanded]="isExpanded(group.symbol)"
+          (click)="toggle(group.symbol)"
+          (keydown.enter)="toggle(group.symbol)"
+          (keydown.space)="toggle(group.symbol); $event.preventDefault()"
+        >
+          <td class="col-toggle">
+            <span class="chevron" aria-hidden="true"></span>
+          </td>
+          <td>
+            <span class="symbol">{{ group.symbol }}</span>
+            <span class="badge" [attr.aria-label]="group.count + ' zleceń'">{{ group.count }}</span>
+          </td>
+          <td></td>
+          <td></td>
+          <td class="num">{{ group.size | number: '1.0-5' }}</td>
+          <td></td>
+          <td class="num">{{ group.avgOpenPrice | number: '1.2-5' }}</td>
+          <td class="num">{{ group.swap | number: '1.2-5' }}</td>
+          <td class="num" [appProfit]="group.profit">
+            @if (group.profit !== null) {
+              {{ group.profit | number: '1.2-4' }}
+            } @else {
+              <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
+            }
+          </td>
+          <td class="col-actions">
+            <button
+              type="button"
+              class="close-btn close-btn--group"
+              [attr.aria-label]="'Zamknij wszystkie zlecenia ' + group.symbol"
+              title="Zamknij grupę"
+              (click)="onCloseGroup($event, group.symbol)"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M4 4h10v2H6v12h12v-8h2v10H4z" fill="currentColor" />
+                <path d="M14 4h6v6h-2V7.4l-6.3 6.3-1.4-1.4L16.6 6H14z" fill="currentColor" />
+              </svg>
+            </button>
+          </td>
+        </tr>
+
+        @if (isExpanded(group.symbol)) {
+          @for (order of group.orders; track order.id) {
+            <tr class="row row--order">
+              <td class="col-toggle"></td>
+              <td></td>
+              <td>{{ order.id }}</td>
+              <td>{{ order.side }}</td>
+              <td class="num">{{ order.size | number: '1.0-5' }}</td>
+              <td>{{ order.openTime | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+              <td class="num">{{ order.openPrice | number: '1.2-5' }}</td>
+              <td class="num">{{ order.swap | number: '1.2-5' }}</td>
+              <td class="num" [appProfit]="order.profit">
+                @if (order.profit !== null) {
+                  {{ order.profit | number: '1.2-4' }}
+                } @else {
+                  <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
+                }
+              </td>
+              <td class="col-actions">
+                <button
+                  type="button"
+                  class="close-btn"
+                  [attr.aria-label]="'Zamknij zlecenie nr ' + order.id"
+                  title="Zamknij zlecenie"
+                  (click)="closeOrder.emit(order.id)"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path
+                      d="M6 5l13 13-1.4 1.4L4.6 6.4zM19 5L6 18l-1.4-1.4L17.6 3.6z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      } @empty {
+        <tr>
+          <td class="empty" colspan="10">Brak otwartych zleceń.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

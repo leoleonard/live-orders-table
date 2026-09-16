@@ -1,0 +1,31 @@
+<section class="page">
+  <app-order-form
+    [symbols]="ordersStore.knownSymbols()"
+    [quotes]="quotesStore.quotes()"
+    (submitted)="onNewOrder($event)"
+  />
+
+  <div class="status" aria-live="polite">
+    @switch (ordersStore.status()) {
+      @case ('loading') {
+        <span class="muted">Ładowanie zleceń…</span>
+      }
+      @case ('error') {
+        <span class="error">Nie udało się pobrać danych: {{ ordersStore.error() }}</span>
+        <button type="button" class="retry" (click)="ordersStore.load()">Spróbuj ponownie</button>
+      }
+      @default {
+        <span class="muted">
+          Zleceń: {{ ordersStore.orders().length }} · grup: {{ groups().length }} · kwotowania:
+          {{ quotesStore.connected() ? 'połączono' : 'rozłączono' }}
+        </span>
+      }
+    }
+  </div>
+
+  <app-orders-table
+    [groups]="groups()"
+    (closeOrder)="onCloseOrder($event)"
+    (closeGroup)="onCloseGroup($event)"
+  />
+</section>

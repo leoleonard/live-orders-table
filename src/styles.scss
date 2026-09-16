@@ -1,0 +1,66 @@
+/* Colour palette from the task specification; switched via `data-theme` on <html>. */
+:root {
+  color-scheme: light;
+  --color-bg: rgb(233, 237, 241);
+  --color-fg: rgb(14, 15, 26);
+  --color-row: rgb(220, 225, 229);
+  --color-row-hover: rgb(201, 209, 216);
+  --color-profit-positive: rgb(60, 193, 149);
+  --color-profit-negative: rgb(249, 76, 76);
+
+  /* derived / neutral tokens (not part of the spec) */
+  --color-muted: rgb(14 15 26 / 0.6);
+  --color-border: rgb(14 15 26 / 0.12);
+  --color-accent: rgb(18, 184, 200);
+  --color-badge-bg: rgb(14 15 26 / 0.12);
+  --color-toast-bg: rgb(14, 15, 26);
+  --color-toast-fg: rgb(233, 237, 241);
+  --color-input-bg: rgb(255 255 255 / 0.7);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: rgb(42, 56, 71);
+  --color-fg: rgb(198, 210, 219);
+  --color-row: rgba(14, 15, 26, 0.25);
+  --color-row-hover: rgba(53, 71, 89, 0.5);
+
+  --color-muted: rgb(198 210 219 / 0.6);
+  --color-border: rgb(198 210 219 / 0.12);
+  --color-badge-bg: rgb(14 15 26 / 0.5);
+  --color-toast-bg: rgb(14, 15, 26);
+  --color-toast-fg: rgb(198, 210, 219);
+  --color-input-bg: rgb(14 15 26 / 0.3);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}

@@ -1,0 +1,87 @@
+<form class="order-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <h2 class="order-form__title">Nowe zlecenie</h2>
+
+  <div class="fields">
+    <label class="field">
+      <span class="field__label">Symbol</span>
+      <select formControlName="symbol" [class.invalid]="showError('symbol')">
+        <option value="" disabled>— wybierz —</option>
+        @for (symbol of symbols(); track symbol) {
+          <option [value]="symbol">{{ symbol }}</option>
+        }
+      </select>
+      @if (showError('symbol')) {
+        <span class="field__error">Wybierz symbol.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Side</span>
+      <select formControlName="side">
+        @for (side of sides; track side) {
+          <option [value]="side">{{ side }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field">
+      <span class="field__label">Size</span>
+      <input
+        type="number"
+        formControlName="size"
+        min="0"
+        step="any"
+        inputmode="decimal"
+        [class.invalid]="showError('size')"
+      />
+      @if (showError('size')) {
+        <span class="field__error">Podaj liczbę większą od 0.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">
+        Open price
+        @if (currentBid() !== null) {
+          <button
+            type="button"
+            class="link"
+            (click)="useCurrentPrice()"
+            title="Użyj aktualnej ceny bid"
+          >
+            bid: {{ currentBid() | number: '1.2-5' }}
+          </button>
+        }
+      </span>
+      <input
+        type="number"
+        formControlName="openPrice"
+        min="0"
+        step="any"
+        inputmode="decimal"
+        [class.invalid]="showError('openPrice')"
+      />
+      @if (showError('openPrice')) {
+        <span class="field__error">Podaj cenę większą od 0.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Open time</span>
+      <input
+        type="datetime-local"
+        step="1"
+        formControlName="openTime"
+        [class.invalid]="showError('openTime')"
+      />
+      @if (showError('openTime')) {
+        <span class="field__error">Podaj datę otwarcia.</span>
+      }
+    </label>
+  </div>
+
+  <div class="actions">
+    <button type="submit" class="btn btn--primary">Dodaj zlecenie</button>
+    <button type="button" class="btn" (click)="reset()">Wyczyść</button>
+  </div>
+</form>
