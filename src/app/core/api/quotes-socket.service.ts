@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { filter, map, Observable, retry, share, Subject, timer } from 'rxjs';
+import { filter, map, Observable, repeat, retry, share, Subject, timer } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { API_CONFIG } from '../config/api.config';
 import { isQuotesSubscribedMessage, Quote, QuotesCommand, QuotesServerMessage } from '../models';
@@ -10,7 +10,7 @@ const RECONNECT_DELAY_MS = 2000;
  * Thin wrapper over the quotes WebSocket.
  *
  * - lazily connects on first `quotes$` subscription,
- * - re-connects with a delay after errors / server close,
+ * - re-connects with a delay after errors (`retry`) and after a clean server close (`repeat`),
  * - remembers subscribed symbols and re-subscribes them after a reconnect.
  */
 @Injectable({ providedIn: 'root' })
@@ -32,6 +32,7 @@ export class QuotesSocket {
     return () => subscription.unsubscribe();
   }).pipe(
     retry({ delay: () => timer(RECONNECT_DELAY_MS) }),
+    repeat({ delay: () => timer(RECONNECT_DELAY_MS) }),
     filter(isQuotesSubscribedMessage),
     map((message) => message.d),
     share(),
@@ -64,8 +65,9 @@ export class QuotesSocket {
   }
 
   private send(command: QuotesCommand): void {
-    // `WebSocketSubject` buffers messages sent before the connection opens.
-    this.socket?.next(command);
+    // While disconnected nothing is sent: the full symbol set is re-sent from `openObserver`,
+    // which also avoids the duplicate frames `WebSocketSubject`'s own pre-open buffer would produce.
+    if (this._connected()) this.socket?.next(command);
   }
 
   private resubscribeAll(): void {
