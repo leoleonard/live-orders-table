@@ -1,7 +1,10 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
 import { OrderGroup } from '../../../core/models';
 import { ProfitDirective } from './profit.directive';
+
+const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean =>
+  a.size === b.size && [...a].every((s) => b.has(s));
 
 /**
  * Presentational, self-contained table: receives already-aggregated groups and
@@ -20,7 +23,15 @@ export class OrdersTableComponent {
   readonly closeOrder = output<number>();
   readonly closeGroup = output<string>();
 
-  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
+  /** Expanded symbols; automatically pruned when a group disappears from `groups`. */
+  protected readonly expanded = linkedSignal<OrderGroup[], ReadonlySet<string>>({
+    source: this.groups,
+    computation: (groups, previous) => {
+      const present = new Set(groups.map((g) => g.symbol));
+      return new Set([...(previous?.value ?? [])].filter((s) => present.has(s)));
+    },
+    equal: sameSet,
+  });
 
   protected isExpanded(symbol: string): boolean {
     return this.expanded().has(symbol);
@@ -29,7 +40,7 @@ export class OrdersTableComponent {
   protected toggle(symbol: string): void {
     this.expanded.update((current) => {
       const next = new Set(current);
-      next.has(symbol) ? next.delete(symbol) : next.add(symbol);
+      if (!next.delete(symbol)) next.add(symbol);
       return next;
     });
   }

@@ -20,15 +20,20 @@
         <tr
           class="row row--group"
           [class.row--expanded]="isExpanded(group.symbol)"
-          tabindex="0"
-          role="button"
-          [attr.aria-expanded]="isExpanded(group.symbol)"
           (click)="toggle(group.symbol)"
-          (keydown.enter)="toggle(group.symbol)"
-          (keydown.space)="toggle(group.symbol); $event.preventDefault()"
         >
           <td class="col-toggle">
-            <span class="chevron" aria-hidden="true"></span>
+            <button
+              type="button"
+              class="toggle-btn"
+              [attr.aria-expanded]="isExpanded(group.symbol)"
+              [attr.aria-label]="
+                (isExpanded(group.symbol) ? 'Zwiń grupę ' : 'Rozwiń grupę ') + group.symbol
+              "
+              (click)="toggle(group.symbol); $event.stopPropagation()"
+            >
+              <span class="chevron" aria-hidden="true"></span>
+            </button>
           </td>
           <td>
             <span class="symbol">{{ group.symbol }}</span>
