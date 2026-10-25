@@ -22,8 +22,15 @@ export class QuotesSocket {
   private readonly opened$ = new Subject<void>();
   private socket: WebSocketSubject<QuotesServerMessage | QuotesCommand> | null = null;
 
+  /**
+   * Plain field, not the signal below: `send()` is reached from a reactive `effect`
+   * (the page syncing subscriptions), and reading a signal there would make that effect
+   * depend on the connection state and re-run on every connect / disconnect.
+   */
+  private isOpen = false;
+
   private readonly _connected = signal(false);
-  /** Whether the socket is currently open. */
+  /** Whether the socket is currently open – for presentation only. */
   readonly connected = this._connected.asReadonly();
 
   /** Stream of quote updates (already flattened, one emission per server frame). */
@@ -67,7 +74,7 @@ export class QuotesSocket {
   private send(command: QuotesCommand): void {
     // While disconnected nothing is sent: the full symbol set is re-sent from `openObserver`,
     // which also avoids the duplicate frames `WebSocketSubject`'s own pre-open buffer would produce.
-    if (this._connected()) this.socket?.next(command);
+    if (this.isOpen) this.socket?.next(command);
   }
 
   private resubscribeAll(): void {
@@ -82,11 +89,17 @@ export class QuotesSocket {
         url: this.config.quotesSocketUrl,
         openObserver: {
           next: () => {
+            this.isOpen = true;
             this._connected.set(true);
             this.opened$.next();
           },
         },
-        closeObserver: { next: () => this._connected.set(false) },
+        closeObserver: {
+          next: () => {
+            this.isOpen = false;
+            this._connected.set(false);
+          },
+        },
       });
     }
     return this.socket;
