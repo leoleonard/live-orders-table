@@ -8,7 +8,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { outputFromObservable, toSignal } from '@angular/core/rxjs-interop';
+import { outputFromObservable, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -79,23 +79,21 @@ export class OrderFormComponent {
   protected readonly currentBid = computed(() => this.quotes()[this.selectedSymbol()]?.b ?? null);
 
   constructor() {
-    // Picking a symbol clears the open price and pre-fills it with that symbol's bid once a
-    // quote exists (it may arrive a moment after the pick). Later ticks never overwrite the
-    // field and a manually typed value is kept; the "bid: …" button refreshes it on demand.
-    const openPrice = this.form.controls.openPrice;
-    let lastSymbol = this.form.controls.symbol.value;
-    let filled = false;
+    // Picking a symbol clears the open price …
+    this.form.controls.symbol.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.form.controls.openPrice.reset(null));
+
+    // … and it is filled with that symbol's bid as soon as a quote exists (it may arrive a
+    // moment after the pick). Later ticks never overwrite the field and a manually typed value
+    // is kept; the "bid: …" button refreshes it on demand.
     effect(() => {
-      const symbol = this.selectedSymbol();
       const bid = this.currentBid();
-      if (symbol !== lastSymbol) {
-        lastSymbol = symbol;
-        filled = false;
-        openPrice.reset(null);
-      }
-      if (!filled && bid !== null && openPrice.pristine) {
+      const openPrice = this.form.controls.openPrice;
+      // `pristine && value === null` is exactly "the user has not typed anything and we have
+      // not filled it for this symbol yet" – no extra flag can fall out of sync with the field.
+      if (bid !== null && openPrice.pristine && openPrice.value === null) {
         openPrice.setValue(bid);
-        filled = true;
       }
     });
   }

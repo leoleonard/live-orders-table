@@ -19,11 +19,12 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
 
 1. **`@ngrx/signals` (Signal Store) zamiast klasycznego NgRx Store.** Aplikacja jest
    mała i w całości oparta na signals (zoneless, `OnPush`). Signal Store daje jawny,
-   typowany stan i metody bez akcji/reducerów/efektów. `OrdersStore` korzysta z
-   `withEntities` (edytowalna lista zleceń) i z `resource()` Angulara (stabilne od v22)
-   dla jednorazowego pobrania danych – status/błąd/`reload()` są za darmo, a `effect`
-   w `withHooks` przepisuje wynik do encji. `QuotesStore` trzyma mapę kwotowań, a stan
-   socketu wystawia przez `withProps`; `ThemeStore` motyw.
+   typowany stan i metody bez akcji/reducerów/efektów. `OrdersStore` pobiera dane przez
+   `resource()` Angulara (stabilne od v22 – status/błąd/`reload()` za darmo), a lista
+   zleceń jest z nim **powiązana** przez `withLinkedState`: przeładowanie zasobu odtwarza
+   listę, a `addOrder`/`closeOrder` piszą do tego samego sygnału pomiędzy. Dostęp po id
+   zapewnia `computed` z mapą. `QuotesStore` trzyma mapę kwotowań, a stan socketu
+   wystawia przez `withProps`; `ThemeStore` motyw.
 2. **Logika domenowa jako czyste funkcje** (`core/domain`): `calculateProfit` i
    `buildOrderGroups` nie znają Angulara, więc są trywialne w testowaniu; store'y
    przechowują tylko surowe dane, a widok (grupy + profit) jest `computed()` w
@@ -48,8 +49,8 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
    jest dostępne – kolejne ticki nie nadpisują pola, które użytkownik edytuje);
    przycisk „bid: …” odświeża cenę na żądanie. Wybrany w formularzu symbol jest
    dopisywany do listy subskrybowanych na WebSockecie, więc cena jest dostępna także
-   dla symbolu bez otwartych zleceń. Nowe zlecenie dostaje `id = max(id) + 1`
-   i `swap = 0`.
+   dla symbolu bez otwartych zleceń. Nowe zlecenie dostaje `swap = 0` i numer z licznika
+   monotonicznego (`lastIssuedId`), więc identyfikator zamkniętego zlecenia nigdy nie wraca.
 9. **Tabela**: stan „rozwinięte grupy” to `linkedSignal` zależny od listy grup, więc
    symbol zamkniętej grupy jest automatycznie usuwany z zestawu. Rozwijanie działa
    kliknięciem w wiersz (wymaganie) i przyciskiem z `aria-expanded` dla klawiatury /
