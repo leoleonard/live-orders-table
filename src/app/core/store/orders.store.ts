@@ -7,6 +7,7 @@ import {
   withHooks,
   withMethods,
   withProps,
+  withState,
 } from '@ngrx/signals';
 import {
   addEntity,
@@ -33,6 +34,8 @@ export const OrdersStore = signalStore(
   { providedIn: 'root' },
   // Orders are editable local state (add / close), so they live as entities …
   withEntities<Order>(),
+  // Monotonic id source: ids are never reused, even after orders are closed or reloaded.
+  withState({ lastIssuedId: 0 }),
   // … while the one-off bootstrap fetch is an Angular `resource` (status / error / reload for free).
   withProps((_, api = inject(OrdersApi)) => ({
     bootstrap: resource({ loader: () => firstValueFrom(api.loadAll()) }),
@@ -69,9 +72,9 @@ export const OrdersStore = signalStore(
 
     /** Adds a locally created order; returns the created entity. */
     addOrder(input: NewOrder): Order {
-      const nextId = store.entities().reduce((max, o) => Math.max(max, o.id), 0) + 1;
-      const order: Order = { ...input, id: nextId, swap: 0 };
-      patchState(store, addEntity(order));
+      const id = store.lastIssuedId() + 1;
+      const order: Order = { ...input, id, swap: 0 };
+      patchState(store, addEntity(order), { lastIssuedId: id });
       return order;
     },
 
@@ -97,7 +100,11 @@ export const OrdersStore = signalStore(
       // Seed the editable entity list every time the bootstrap resource resolves.
       effect(() => {
         if (store.bootstrap.hasValue()) {
-          patchState(store, setAllEntities(store.bootstrap.value().orders));
+          const orders = store.bootstrap.value().orders;
+          patchState(store, setAllEntities(orders), ({ lastIssuedId }) => ({
+            // never hand out an id that a loaded order already uses
+            lastIssuedId: orders.reduce((max, o) => Math.max(max, o.id), lastIssuedId),
+          }));
         }
       });
     },

@@ -106,7 +106,7 @@ describe('OrdersStore', () => {
     expect(store.closeGroup('BTCUSD')).toEqual([]);
   });
 
-  it('adds a new order with the next free id, zero swap and keeps known symbols intact', async () => {
+  it('adds a new order with a fresh id, zero swap and keeps known symbols intact', async () => {
     await flushLoad();
     store.closeGroup('ETHUSD');
     const created = store.addOrder({
@@ -141,5 +141,49 @@ describe('describeLoadError', () => {
   it('falls back to the Error message or a generic text', () => {
     expect(describeLoadError(new Error('nope'))).toBe('nope');
     expect(describeLoadError('???')).toBe('Failed to load orders');
+  });
+});
+
+describe('OrdersStore ids', () => {
+  let store: InstanceType<typeof OrdersStore>;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_CONFIG, useValue: config },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
+    store = TestBed.inject(OrdersStore);
+    TestBed.tick();
+    http.expectOne(config.ordersUrl).flush({ data: orders });
+    http.expectOne(config.instrumentsUrl).flush([]);
+    http.expectOne(config.contractTypesUrl).flush([]);
+  });
+
+  afterEach(() => http.verify());
+
+  const settle = () => TestBed.inject(ApplicationRef).whenStable();
+  const newOrder = () =>
+    store.addOrder({ symbol: 'BTCUSD', side: 'BUY', size: 1, openPrice: 1, openTime: 0 });
+
+  it('never reuses the id of a closed order', async () => {
+    await settle();
+    const first = newOrder();
+    store.closeOrder(first.id);
+    const second = newOrder();
+    expect(second.id).toBeGreaterThan(first.id);
+  });
+
+  it('keeps increasing even when every order is closed', async () => {
+    await settle();
+    const first = newOrder();
+    store.closeGroup('BTCUSD');
+    store.closeGroup('ETHUSD');
+    expect(store.orders()).toEqual([]);
+    expect(newOrder().id).toBeGreaterThan(first.id);
   });
 });
