@@ -47,4 +47,37 @@ describe('QuotesStore', () => {
     socket.connected.set(true);
     expect(store.connected()).toBe(true);
   });
+
+  it('forgets the price of a symbol it stopped watching', () => {
+    store.watchSymbols(['BTCUSD', 'ETHUSD']);
+    socket.quotes$.next([
+      { s: 'BTCUSD', b: 1, a: 2, t: 1 },
+      { s: 'ETHUSD', b: 3, a: 4, t: 1 },
+    ]);
+
+    store.watchSymbols(['ETHUSD']);
+
+    expect(store.quotes()['BTCUSD']).toBeUndefined();
+    expect(store.quotes()['ETHUSD'].b).toBe(3);
+  });
+
+  it('waits for a fresh quote after re-subscribing instead of reusing the old price', () => {
+    store.watchSymbols(['BTCUSD']);
+    socket.quotes$.next([{ s: 'BTCUSD', b: 100, a: 101, t: 1 }]);
+    store.watchSymbols([]);
+    store.watchSymbols(['BTCUSD']);
+
+    expect(store.quotes()['BTCUSD']).toBeUndefined();
+
+    socket.quotes$.next([{ s: 'BTCUSD', b: 250, a: 251, t: 2 }]);
+    expect(store.quotes()['BTCUSD'].b).toBe(250);
+  });
+
+  it('keeps the state reference when nothing is dropped', () => {
+    store.watchSymbols(['BTCUSD']);
+    socket.quotes$.next([{ s: 'BTCUSD', b: 1, a: 2, t: 1 }]);
+    const before = store.quotes();
+    store.watchSymbols(['BTCUSD', 'ETHUSD']);
+    expect(store.quotes()).toBe(before);
+  });
 });

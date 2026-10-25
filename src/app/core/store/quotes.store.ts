@@ -12,6 +12,11 @@ import { QuotesSocket } from '../api/quotes-socket.service';
 import { Quote, QuotesBySymbol } from '../models';
 
 interface QuotesState {
+  /**
+   * Current price per symbol. Only subscribed symbols are kept: a price stops being current
+   * the moment we send `removelist`, and presenting a minutes-old bid as "the current price"
+   * (e.g. pre-filling the order form) would be misleading in a trading app.
+   */
   quotes: QuotesBySymbol;
 }
 
@@ -23,9 +28,20 @@ export const QuotesStore = signalStore(
     connected: socket.connected,
   })),
   withMethods((store, socket = inject(QuotesSocket)) => ({
-    /** Keeps live quotes flowing exactly for `symbols` (subscribes new ones, drops stale ones). */
+    /**
+     * Keeps live quotes flowing exactly for `symbols` (subscribes new ones, drops stale ones)
+     * and forgets the prices of the symbols that are no longer watched, so a later
+     * re-subscription waits for a fresh quote instead of reusing the old one.
+     */
     watchSymbols(symbols: readonly string[]): void {
       socket.setSymbols(symbols);
+      const watched = new Set(symbols);
+      patchState(store, ({ quotes }) => {
+        const kept = Object.entries(quotes).filter(([symbol]) => watched.has(symbol));
+        return kept.length === Object.keys(quotes).length
+          ? {}
+          : { quotes: Object.fromEntries(kept) };
+      });
     },
 
     applyQuotes(quotes: readonly Quote[]): void {
