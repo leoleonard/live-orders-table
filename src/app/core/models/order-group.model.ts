@@ -1,12 +1,23 @@
 import { Order } from './order.model';
 
+/**
+ * Why a profit could not be computed:
+ * - `awaiting-quote`   – normal, the first quote for the symbol has not arrived yet,
+ * - `unknown-instrument` – the symbol is missing from instruments / contract-types,
+ *   which is a data problem and must not be silently defaulted away.
+ */
+export type ProfitUnavailableReason = 'awaiting-quote' | 'unknown-instrument';
+
 /** A single order enriched with values derived from quotes / instruments. */
 export interface OrderRow extends Order {
-  contractSize: number;
+  /** `null` when the instrument is not in the instruments list. */
+  contractSize: number | null;
   /** Current bid; `null` until the first quote for the symbol arrives. */
   bid: number | null;
-  /** `null` while the profit cannot be computed (no quote yet). */
+  /** `null` while the profit cannot be computed – see `profitUnavailable`. */
   profit: number | null;
+  /** Set exactly when `profit` is `null`. */
+  profitUnavailable: ProfitUnavailableReason | null;
 }
 
 export interface OrderGroup {
@@ -16,7 +27,9 @@ export interface OrderGroup {
   swap: number;
   /** Arithmetic mean of the open prices. */
   avgOpenPrice: number;
-  /** Sum of order profits; `null` when none of the orders has a profit yet. */
+  /** Sum of the profits that could be computed; `null` when none could. */
   profit: number | null;
+  /** Set when at least one order of the group has no profit. */
+  profitUnavailable: ProfitUnavailableReason | null;
   orders: OrderRow[];
 }

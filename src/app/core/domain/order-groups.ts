@@ -1,29 +1,37 @@
-import { Order, OrderGroup, OrderRow, QuotesBySymbol } from '../models';
+import { Order, OrderGroup, OrderRow, ProfitUnavailableReason, QuotesBySymbol } from '../models';
 import { calculateProfit } from './profit';
 
 export type ContractSizeBySymbol = Readonly<Record<string, number>>;
-
-/** Contract size used when an instrument is missing from the instruments list. */
-export const DEFAULT_CONTRACT_SIZE = 1;
 
 export function toOrderRow(
   order: Order,
   quotes: QuotesBySymbol,
   contractSizes: ContractSizeBySymbol,
 ): OrderRow {
-  const contractSize = contractSizes[order.symbol] ?? DEFAULT_CONTRACT_SIZE;
+  // No fallback contract size: an unknown instrument is a data problem, and defaulting to 1
+  // would silently produce a wrong profit instead of surfacing it.
+  const contractSize = contractSizes[order.symbol] ?? null;
   const bid = quotes[order.symbol]?.b ?? null;
-  const profit =
-    bid === null
-      ? null
-      : calculateProfit({
-          side: order.side,
-          size: order.size,
-          openPrice: order.openPrice,
-          contractSize,
-          priceBid: bid,
-        });
-  return { ...order, contractSize, bid, profit };
+
+  if (contractSize === null) {
+    return { ...order, contractSize, bid, profit: null, profitUnavailable: 'unknown-instrument' };
+  }
+  if (bid === null) {
+    return { ...order, contractSize, bid, profit: null, profitUnavailable: 'awaiting-quote' };
+  }
+  return {
+    ...order,
+    contractSize,
+    bid,
+    profit: calculateProfit({
+      side: order.side,
+      size: order.size,
+      openPrice: order.openPrice,
+      contractSize,
+      priceBid: bid,
+    }),
+    profitUnavailable: null,
+  };
 }
 
 /**
@@ -54,8 +62,16 @@ function aggregateGroup(symbol: string, orders: OrderRow[]): OrderGroup {
     swap: sum(orders.map((o) => o.swap)),
     avgOpenPrice: sum(orders.map((o) => o.openPrice)) / orders.length,
     profit: profits.length ? sum(profits) : null,
+    profitUnavailable: groupUnavailableReason(orders),
     orders,
   };
+}
+
+/** A missing instrument outranks a missing quote: it is an error, not a waiting state. */
+function groupUnavailableReason(orders: OrderRow[]): ProfitUnavailableReason | null {
+  if (orders.some((o) => o.profitUnavailable === 'unknown-instrument')) return 'unknown-instrument';
+  if (orders.some((o) => o.profitUnavailable === 'awaiting-quote')) return 'awaiting-quote';
+  return null;
 }
 
 const sum = (values: number[]): number => values.reduce((acc, v) => acc + v, 0);

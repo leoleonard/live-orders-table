@@ -48,8 +48,15 @@
           <td class="num" [appProfit]="group.profit">
             @if (group.profit !== null) {
               {{ group.profit | number: '1.2-5' }}
-            } @else {
+            }
+            @if (group.profitUnavailable === 'awaiting-quote') {
               <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
+            } @else if (group.profitUnavailable === 'unknown-instrument') {
+              <span
+                class="data-error"
+                title="Brak instrumentu w danych – nie można wyliczyć profitu"
+                >brak danych</span
+              >
             }
           </td>
           <td class="col-actions">
@@ -82,8 +89,14 @@
               <td class="num" [appProfit]="order.profit">
                 @if (order.profit !== null) {
                   {{ order.profit | number: '1.2-5' }}
-                } @else {
+                } @else if (order.profitUnavailable === 'awaiting-quote') {
                   <span class="muted" title="Oczekiwanie na kwotowanie">—</span>
+                } @else {
+                  <span
+                    class="data-error"
+                    title="Brak instrumentu w danych – nie można wyliczyć profitu"
+                    >brak danych</span
+                  >
                 }
               </td>
               <td class="col-actions">

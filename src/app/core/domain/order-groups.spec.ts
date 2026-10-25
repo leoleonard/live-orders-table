@@ -30,16 +30,18 @@ describe('toOrderRow', () => {
     const row = toOrderRow(order({}), {}, { BTCUSD: 10 });
     expect(row.bid).toBeNull();
     expect(row.profit).toBeNull();
+    expect(row.profitUnavailable).toBe('awaiting-quote');
   });
 
-  it('falls back to contract size 1 for unknown instruments', () => {
+  it('reports an unknown instrument instead of assuming a contract size', () => {
     const row = toOrderRow(
       order({ symbol: 'XXX', size: 1, openPrice: 1 }),
       { XXX: quote('XXX', 3) },
       {},
     );
-    expect(row.contractSize).toBe(1);
-    expect(row.profit).toBe(2);
+    expect(row.contractSize).toBeNull();
+    expect(row.profit).toBeNull();
+    expect(row.profitUnavailable).toBe('unknown-instrument');
   });
 });
 
@@ -67,6 +69,7 @@ describe('buildOrderGroups', () => {
   it('sums profits and keeps null until a quote arrives', () => {
     const withoutQuote = buildOrderGroups(orders, {}, { BTCUSD: 1 });
     expect(withoutQuote[0].profit).toBeNull();
+    expect(withoutQuote[0].profitUnavailable).toBe('awaiting-quote');
 
     const [btc] = buildOrderGroups(orders, { BTCUSD: quote('BTCUSD', 120) }, { BTCUSD: 1 });
     // BUY: (120-100)*0.1 = 2 ; SELL: (120-200)*0.3*-1 = 24
@@ -75,5 +78,37 @@ describe('buildOrderGroups', () => {
 
   it('returns an empty list for no orders', () => {
     expect(buildOrderGroups([], {}, {})).toEqual([]);
+  });
+});
+
+describe('unknown instruments', () => {
+  const unknown = order({ id: 9, symbol: 'NOPE', size: 1, openPrice: 1 });
+
+  it('flags the whole group when one order has no contract size', () => {
+    const [group] = buildOrderGroups(
+      [order({ id: 1, symbol: 'NOPE', size: 1, openPrice: 1 }), unknown],
+      { NOPE: quote('NOPE', 2) },
+      {},
+    );
+    expect(group.profit).toBeNull();
+    expect(group.profitUnavailable).toBe('unknown-instrument');
+  });
+
+  it('prefers the data error over a missing quote', () => {
+    const [group] = buildOrderGroups([unknown], {}, {});
+    expect(group.profitUnavailable).toBe('unknown-instrument');
+  });
+
+  it('still sums the orders it can compute', () => {
+    const [group] = buildOrderGroups(
+      [
+        order({ id: 1, symbol: 'OK', size: 1, openPrice: 1 }),
+        order({ id: 2, symbol: 'OK', size: 1, openPrice: 1 }),
+      ],
+      { OK: quote('OK', 3) },
+      { OK: 1 },
+    );
+    expect(group.profit).toBe(4);
+    expect(group.profitUnavailable).toBeNull();
   });
 });

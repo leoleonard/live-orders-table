@@ -115,6 +115,13 @@
   color: var(--color-muted);
 }
 
+.data-error {
+  color: var(--color-profit-negative);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .close-btn {
   display: inline-flex;
   padding: 0.25rem;
