@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { Quote } from '../models';
-import { QuotesSocket } from './quotes-socket.service';
+import { Quote } from '../app/core/models';
+import { QuotesSocket } from '../app/core/api/quotes-socket.service';
 
 /** Test double for `QuotesSocket` – records subscriptions and lets tests push quotes. */
 export class QuotesSocketStub implements Pick<

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { QuotesSocket } from '../api/quotes-socket.service';
-import { QuotesSocketStub } from '../api/quotes-socket.stub';
+import { QuotesSocketStub } from '../../../testing/quotes-socket.stub';
 import { QuotesStore } from './quotes.store';
 
 describe('QuotesStore', () => {

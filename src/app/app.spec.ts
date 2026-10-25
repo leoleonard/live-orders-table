@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { QuotesSocket } from './core/api/quotes-socket.service';
-import { QuotesSocketStub } from './core/api/quotes-socket.stub';
+import { QuotesSocketStub } from '../testing/quotes-socket.stub';
 
 describe('App', () => {
   beforeEach(async () => {
