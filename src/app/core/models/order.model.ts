@@ -12,7 +12,3 @@ export interface Order {
 
 /** Data needed to create a new order locally (id / swap are assigned by the store). */
 export type NewOrder = Omit<Order, 'id' | 'swap'>;
-
-export interface OrdersResponse {
-  data: Order[];
-}

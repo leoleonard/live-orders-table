@@ -3,6 +3,7 @@ import { filter, map, Observable, repeat, retry, share, Subject, timer } from 'r
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { API_CONFIG } from '../config/api.config';
 import { isQuotesSubscribedMessage, Quote, QuotesCommand, QuotesServerMessage } from '../models';
+import { parseQuotes } from './payload';
 
 const RECONNECT_DELAY_MS = 2000;
 
@@ -45,7 +46,8 @@ export class QuotesSocket {
     retry({ delay: () => timer(RECONNECT_DELAY_MS) }),
     repeat({ delay: () => timer(RECONNECT_DELAY_MS) }),
     filter(isQuotesSubscribedMessage),
-    map((message) => message.d),
+    map((message) => parseQuotes(message.d)),
+    filter((quotes) => quotes.length > 0),
     share(),
   );
 
