@@ -20,7 +20,7 @@
         <tr
           class="row row--group"
           [class.row--expanded]="isExpanded(group.symbol)"
-          (click)="toggle(group.symbol)"
+          (click)="toggled.emit(group.symbol)"
         >
           <td class="col-toggle">
             <button
@@ -30,7 +30,7 @@
               [attr.aria-label]="
                 (isExpanded(group.symbol) ? 'Zwiń grupę ' : 'Rozwiń grupę ') + group.symbol
               "
-              (click)="toggle(group.symbol); $event.stopPropagation()"
+              (click)="toggled.emit(group.symbol); $event.stopPropagation()"
             >
               <span class="chevron" aria-hidden="true"></span>
             </button>

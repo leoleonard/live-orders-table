@@ -31,5 +31,9 @@ export interface OrderGroup {
   profit: number | null;
   /** Set when at least one order of the group has no profit. */
   profitUnavailable: ProfitUnavailableReason | null;
-  orders: OrderRow[];
+  /**
+   * Detail rows – populated only while the group is expanded. Collapsed groups are the
+   * common case and their rows are never rendered, so they are not built.
+   */
+  orders: readonly OrderRow[];
 }

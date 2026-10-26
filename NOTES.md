@@ -70,14 +70,22 @@ Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
 - `role="button"` + `keydown` na `<tr>` – klawisze na zagnieżdżonym przycisku
   „zamknij” przechodziły do wiersza i przełączały grupę; `<tr>` tracił semantykę.
 
+## Po feedbacku z code review
+
+Po otrzymaniu feedbacku poprawiłem wskazane kwestie (po jednym commicie na temat):
+usunięta nieużywana zależność i stub testowy poza kodem produkcyjnym, zawężone publiczne
+API `QuotesSocket`, walidacja payloadów HTTP/WS na granicy aplikacji (strict dla HTTP,
+pobłażliwa dla strumienia cen), jawny błąd zamiast `contractSize = 1`, monotoniczny licznik
+identyfikatorów, zapominanie ceny przy `removelist`, usunięta zależność efektu subskrypcji
+od stanu połączenia, deklaratywne wiązanie stanu (`withLinkedState`) zamiast efektów
+przenoszących dane oraz memoizacja grup per symbol wraz z budowaniem wierszy szczegółowych
+tylko dla rozwiniętych grup i kubełkowaniem kwotowań (100 ms).
+
 ## Co bym zmienił mając więcej czasu
 
 - testy komponentów (rozwijanie grup, emitowanie zdarzeń, walidacja formularza)
   i test `QuotesSocket` z zamockowanym `WebSocket` (reconnect, resubskrypcja);
-- wirtualizację / paginację tabeli – przy 200+ zleceniach jest OK, przy tysiącach
-  `buildOrderGroups` przy każdym ticku byłby do zoptymalizowania (np. memoizacja
-  per symbol albo `computed` per grupa);
-- throttling aktualizacji z WebSocketu (np. `auditTime(100)`), żeby nie renderować
-  częściej niż to potrzebne;
+- wirtualizację / paginację tabeli – memoizacja per symbol i kubełkowanie ticków są już
+  zrobione, ale przy tysiącach wierszy sam DOM stałby się wąskim gardłem;
 - i18n (teksty są po polsku na sztywno), formatowanie liczb z `LOCALE_ID`;
 - sortowanie / filtrowanie kolumn, potwierdzenie przed zamknięciem grupy.

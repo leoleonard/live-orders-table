@@ -1,11 +1,18 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { filter, map, Observable, repeat, retry, share, Subject, timer } from 'rxjs';
+import { bufferTime, filter, map, Observable, repeat, retry, share, Subject, timer } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { API_CONFIG } from '../config/api.config';
 import { isQuotesSubscribedMessage, Quote, QuotesCommand, QuotesServerMessage } from '../models';
 import { parseQuotes } from './payload';
 
 const RECONNECT_DELAY_MS = 2000;
+
+/**
+ * Quote frames are coalesced over this window. The server sends one frame per symbol, many
+ * times per second; without buffering each frame would be a separate state update and a
+ * separate render. 100 ms still looks live and caps the work at ~10 updates per second.
+ */
+const QUOTE_BUFFER_MS = 100;
 
 /**
  * Thin wrapper over the quotes WebSocket.
@@ -15,6 +22,7 @@ const RECONNECT_DELAY_MS = 2000;
  * individual add/remove commands, so the subscription set cannot drift out of sync.
  *
  * - lazily connects on first `quotes$` subscription,
+ * - coalesces incoming frames into one emission per `QUOTE_BUFFER_MS`,
  * - re-connects with a delay after errors (`retry`) and after a clean server close (`repeat`),
  * - remembers subscribed symbols and re-subscribes them after a reconnect.
  */
@@ -47,6 +55,8 @@ export class QuotesSocket {
     repeat({ delay: () => timer(RECONNECT_DELAY_MS) }),
     filter(isQuotesSubscribedMessage),
     map((message) => parseQuotes(message.d)),
+    bufferTime(QUOTE_BUFFER_MS),
+    map((frames) => frames.flat()),
     filter((quotes) => quotes.length > 0),
     share(),
   );

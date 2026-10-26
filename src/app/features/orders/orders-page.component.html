@@ -29,6 +29,8 @@
 
   <app-orders-table
     [groups]="groups()"
+    [expanded]="expanded()"
+    (toggled)="toggle($event)"
     (closeOrder)="onCloseOrder($event)"
     (closeGroup)="onCloseGroup($event)"
   />
