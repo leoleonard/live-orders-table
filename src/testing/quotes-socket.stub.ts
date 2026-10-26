@@ -6,7 +6,7 @@ import { QuotesSocket } from '../app/core/api/quotes-socket.service';
 /** Test double for `QuotesSocket` – records subscriptions and lets tests push quotes. */
 export class QuotesSocketStub implements Pick<
   QuotesSocket,
-  'quotes$' | 'connected' | 'setSymbols' | 'subscribe' | 'unsubscribe'
+  'quotes$' | 'connected' | 'setSymbols'
 > {
   readonly quotes$ = new Subject<Quote[]>();
   readonly connected = signal(false);
@@ -19,14 +19,14 @@ export class QuotesSocketStub implements Pick<
     this.subscribe(symbols);
   }
 
-  subscribe(symbols: readonly string[]): void {
+  private subscribe(symbols: readonly string[]): void {
     const fresh = symbols.filter((s) => !this.symbols.has(s));
     if (!fresh.length) return;
     fresh.forEach((s) => this.symbols.add(s));
     this.calls.push({ type: 'add', symbols: fresh });
   }
 
-  unsubscribe(symbols: readonly string[]): void {
+  private unsubscribe(symbols: readonly string[]): void {
     const known = symbols.filter((s) => this.symbols.has(s));
     if (!known.length) return;
     known.forEach((s) => this.symbols.delete(s));

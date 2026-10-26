@@ -9,6 +9,10 @@ const RECONNECT_DELAY_MS = 2000;
 /**
  * Thin wrapper over the quotes WebSocket.
  *
+ * The public surface is deliberately minimal – `quotes$` to read prices, `setSymbols` to
+ * declare what should be watched and `connected` for presentation. Callers never manage
+ * individual add/remove commands, so the subscription set cannot drift out of sync.
+ *
  * - lazily connects on first `quotes$` subscription,
  * - re-connects with a delay after errors (`retry`) and after a clean server close (`repeat`),
  * - remembers subscribed symbols and re-subscribes them after a reconnect.
@@ -57,14 +61,14 @@ export class QuotesSocket {
     this.subscribe(symbols);
   }
 
-  subscribe(symbols: readonly string[]): void {
+  private subscribe(symbols: readonly string[]): void {
     const fresh = symbols.filter((s) => !this.subscribedSymbols.has(s));
     if (!fresh.length) return;
     fresh.forEach((s) => this.subscribedSymbols.add(s));
     this.send({ p: '/subscribe/addlist', d: fresh });
   }
 
-  unsubscribe(symbols: readonly string[]): void {
+  private unsubscribe(symbols: readonly string[]): void {
     const known = symbols.filter((s) => this.subscribedSymbols.has(s));
     if (!known.length) return;
     known.forEach((s) => this.subscribedSymbols.delete(s));
