@@ -7,6 +7,9 @@ import { parseQuotes } from './payload';
 
 const RECONNECT_DELAY_MS = 2000;
 
+/** What the rest of the app needs from a source of quotes – see `provideQuotesFeed`. */
+export type QuotesFeed = Pick<QuotesSocket, 'quotes$' | 'connected' | 'setSymbols'>;
+
 /**
  * Quote frames are coalesced over this window. The server sends one frame per symbol, many
  * times per second; without buffering each frame would be a separate state update and a
@@ -99,10 +102,16 @@ export class QuotesSocket {
     }
   }
 
+  private socketUrl(): string {
+    const url = this.config.quotesSocketUrl;
+    if (!url) throw new Error('QuotesSocket requires API_CONFIG.quotesSocketUrl');
+    return url;
+  }
+
   private getSocket(): WebSocketSubject<QuotesServerMessage | QuotesCommand> {
     if (!this.socket) {
       this.socket = webSocket<QuotesServerMessage | QuotesCommand>({
-        url: this.config.quotesSocketUrl,
+        url: this.socketUrl(),
         openObserver: {
           next: () => {
             this.isOpen = true;

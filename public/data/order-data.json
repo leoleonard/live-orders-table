@@ -1,0 +1,247 @@
+{
+  "data": [
+    {
+      "id": 1203898,
+      "symbol": "US500",
+      "side": "SELL",
+      "size": 0.05,
+      "openPrice": 5898.1,
+      "openTime": 1794853729000,
+      "swap": -0.16
+    },
+    {
+      "id": 1203555,
+      "symbol": "GBPUSD",
+      "side": "BUY",
+      "size": 0.5,
+      "openPrice": 1.27605,
+      "openTime": 1793712263000,
+      "swap": -1.25
+    },
+    {
+      "id": 1203708,
+      "symbol": "BTCUSD",
+      "side": "SELL",
+      "size": 0.05,
+      "openPrice": 90910.92,
+      "openTime": 1794033850000,
+      "swap": 0.0
+    },
+    {
+      "id": 1203719,
+      "symbol": "BTCUSD",
+      "side": "SELL",
+      "size": 0.01,
+      "openPrice": 91666.9,
+      "openTime": 1794307931000,
+      "swap": 0.0
+    },
+    {
+      "id": 1203820,
+      "symbol": "ETHUSD",
+      "side": "BUY",
+      "size": 1,
+      "openPrice": 3311.35,
+      "openTime": 1794254484000,
+      "swap": 0.3
+    },
+    {
+      "id": 1203669,
+      "symbol": "XAUUSD",
+      "side": "SELL",
+      "size": 0.5,
+      "openPrice": 2666.38,
+      "openTime": 1793888599000,
+      "swap": -1.04
+    },
+    {
+      "id": 1203890,
+      "symbol": "ETHUSD",
+      "side": "SELL",
+      "size": 0.2,
+      "openPrice": 3274.44,
+      "openTime": 1794836102000,
+      "swap": 0.07
+    },
+    {
+      "id": 1203979,
+      "symbol": "US500",
+      "side": "BUY",
+      "size": 0.01,
+      "openPrice": 5858.0,
+      "openTime": 1793968814000,
+      "swap": -0.01
+    },
+    {
+      "id": 1203479,
+      "symbol": "EURUSD",
+      "side": "SELL",
+      "size": 0.05,
+      "openPrice": 1.09042,
+      "openTime": 1794894814000,
+      "swap": -0.07
+    },
+    {
+      "id": 1203789,
+      "symbol": "ETHUSD",
+      "side": "SELL",
+      "size": 0.05,
+      "openPrice": 3338.91,
+      "openTime": 1793436794000,
+      "swap": -0.01
+    },
+    {
+      "id": 1203828,
+      "symbol": "ETHUSD",
+      "side": "SELL",
+      "size": 2,
+      "openPrice": 3335.06,
+      "openTime": 1794958254000,
+      "swap": -6.32
+    },
+    {
+      "id": 1203610,
+      "symbol": "USDJPY",
+      "side": "SELL",
+      "size": 0.5,
+      "openPrice": 151.263,
+      "openTime": 1794137738000,
+      "swap": -1.11
+    },
+    {
+      "id": 1203517,
+      "symbol": "GBPUSD",
+      "side": "SELL",
+      "size": 0.1,
+      "openPrice": 1.26761,
+      "openTime": 1794617799000,
+      "swap": -0.02
+    },
+    {
+      "id": 1203675,
+      "symbol": "XAUUSD",
+      "side": "SELL",
+      "size": 0.2,
+      "openPrice": 2624.47,
+      "openTime": 1793358048000,
+      "swap": -0.44
+    },
+    {
+      "id": 1203732,
+      "symbol": "BTCUSD",
+      "side": "BUY",
+      "size": 0.2,
+      "openPrice": 91034.7,
+      "openTime": 1794714137000,
+      "swap": -0.08
+    },
+    {
+      "id": 1203745,
+      "symbol": "ETHUSD",
+      "side": "BUY",
+      "size": 1,
+      "openPrice": 3264.53,
+      "openTime": 1794135002000,
+      "swap": -3.45
+    },
+    {
+      "id": 1203593,
+      "symbol": "USDJPY",
+      "side": "BUY",
+      "size": 0.2,
+      "openPrice": 150.628,
+      "openTime": 1794928737000,
+      "swap": -0.42
+    },
+    {
+      "id": 1203939,
+      "symbol": "US500",
+      "side": "BUY",
+      "size": 0.01,
+      "openPrice": 5834.6,
+      "openTime": 1794204192000,
+      "swap": -0.0
+    },
+    {
+      "id": 1203916,
+      "symbol": "US500",
+      "side": "BUY",
+      "size": 2,
+      "openPrice": 5911.5,
+      "openTime": 1793699430000,
+      "swap": -6.13
+    },
+    {
+      "id": 1204011,
+      "symbol": "DE40",
+      "side": "BUY",
+      "size": 1,
+      "openPrice": 19151.0,
+      "openTime": 1793641740000,
+      "swap": -2.57
+    },
+    {
+      "id": 1204006,
+      "symbol": "DE40",
+      "side": "SELL",
+      "size": 0.2,
+      "openPrice": 19183.7,
+      "openTime": 1794512505000,
+      "swap": -0.7
+    },
+    {
+      "id": 1203440,
+      "symbol": "EURUSD",
+      "side": "BUY",
+      "size": 2,
+      "openPrice": 1.07801,
+      "openTime": 1794892253000,
+      "swap": -5.12
+    },
+    {
+      "id": 1203630,
+      "symbol": "XAUUSD",
+      "side": "SELL",
+      "size": 0.5,
+      "openPrice": 2643.46,
+      "openTime": 1794943546000,
+      "swap": -1.33
+    },
+    {
+      "id": 1203851,
+      "symbol": "ETHUSD",
+      "side": "BUY",
+      "size": 1,
+      "openPrice": 3287.37,
+      "openTime": 1794636993000,
+      "swap": -1.17
+    },
+    {
+      "id": 1203581,
+      "symbol": "USDJPY",
+      "side": "BUY",
+      "size": 0.1,
+      "openPrice": 150.4,
+      "openTime": 1794428903000,
+      "swap": -0.1
+    },
+    {
+      "id": 1203755,
+      "symbol": "ETHUSD",
+      "side": "SELL",
+      "size": 0.5,
+      "openPrice": 3263.82,
+      "openTime": 1794744605000,
+      "swap": -0.88
+    },
+    {
+      "id": 1203417,
+      "symbol": "EURUSD",
+      "side": "SELL",
+      "size": 0.01,
+      "openPrice": 1.07678,
+      "openTime": 1794743501000,
+      "swap": -0.01
+    }
+  ]
+}

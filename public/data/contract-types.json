@@ -1,0 +1,18 @@
+[
+  {
+    "contractType": 1,
+    "contractSize": 100000
+  },
+  {
+    "contractType": 2,
+    "contractSize": 100
+  },
+  {
+    "contractType": 3,
+    "contractSize": 1
+  },
+  {
+    "contractType": 4,
+    "contractSize": 10
+  }
+]

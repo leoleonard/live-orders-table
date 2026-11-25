@@ -1,0 +1,34 @@
+[
+  {
+    "symbol": "EURUSD",
+    "contractType": 1
+  },
+  {
+    "symbol": "GBPUSD",
+    "contractType": 1
+  },
+  {
+    "symbol": "USDJPY",
+    "contractType": 1
+  },
+  {
+    "symbol": "XAUUSD",
+    "contractType": 2
+  },
+  {
+    "symbol": "BTCUSD",
+    "contractType": 3
+  },
+  {
+    "symbol": "ETHUSD",
+    "contractType": 3
+  },
+  {
+    "symbol": "US500",
+    "contractType": 4
+  },
+  {
+    "symbol": "DE40",
+    "contractType": 4
+  }
+]

@@ -1,13 +1,10 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Quote } from '../app/core/models';
-import { QuotesSocket } from '../app/core/api/quotes-socket.service';
+import { QuotesFeed } from '../app/core/api/quotes-socket.service';
 
 /** Test double for `QuotesSocket` – records subscriptions and lets tests push quotes. */
-export class QuotesSocketStub implements Pick<
-  QuotesSocket,
-  'quotes$' | 'connected' | 'setSymbols'
-> {
+export class QuotesSocketStub implements QuotesFeed {
   readonly quotes$ = new Subject<Quote[]>();
   readonly connected = signal(false);
   readonly symbols = new Set<string>();
