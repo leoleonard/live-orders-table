@@ -1,17 +1,17 @@
 <form class="order-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-  <h2 class="order-form__title">Nowe zlecenie</h2>
+  <h2 class="order-form__title">New order</h2>
 
   <div class="fields">
     <label class="field">
       <span class="field__label">Symbol</span>
       <select formControlName="symbol" [class.invalid]="showError('symbol')">
-        <option value="" disabled>— wybierz —</option>
+        <option value="" disabled>— select —</option>
         @for (symbol of symbols(); track symbol) {
           <option [value]="symbol">{{ symbol }}</option>
         }
       </select>
       @if (showError('symbol')) {
-        <span class="field__error">Wybierz symbol.</span>
+        <span class="field__error">Select a symbol.</span>
       }
     </label>
 
@@ -35,7 +35,7 @@
         [class.invalid]="showError('size')"
       />
       @if (showError('size')) {
-        <span class="field__error">Podaj liczbę większą od 0.</span>
+        <span class="field__error">Enter a number greater than 0.</span>
       }
     </label>
 
@@ -47,7 +47,7 @@
             type="button"
             class="link"
             (click)="useCurrentPrice()"
-            title="Użyj aktualnej ceny bid"
+            title="Use the current bid price"
           >
             bid: {{ currentBid() | number: '1.2-5' }}
           </button>
@@ -62,7 +62,7 @@
         [class.invalid]="showError('openPrice')"
       />
       @if (showError('openPrice')) {
-        <span class="field__error">Podaj cenę większą od 0.</span>
+        <span class="field__error">Enter a price greater than 0.</span>
       }
     </label>
 
@@ -75,13 +75,13 @@
         [class.invalid]="showError('openTime')"
       />
       @if (showError('openTime')) {
-        <span class="field__error">Podaj datę otwarcia.</span>
+        <span class="field__error">Enter the open time.</span>
       }
     </label>
   </div>
 
   <div class="actions">
-    <button type="submit" class="btn btn--primary">Dodaj zlecenie</button>
-    <button type="button" class="btn" (click)="reset()">Wyczyść</button>
+    <button type="submit" class="btn btn--primary">Add order</button>
+    <button type="button" class="btn" (click)="reset()">Clear</button>
   </div>
 </form>

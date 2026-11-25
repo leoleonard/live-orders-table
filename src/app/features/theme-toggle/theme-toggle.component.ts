@@ -11,12 +11,12 @@ import { ThemeStore } from '../../core/store/theme.store';
       role="switch"
       [attr.aria-checked]="theme.theme() === 'dark'"
       [attr.aria-label]="
-        theme.theme() === 'dark' ? 'Przełącz na motyw jasny' : 'Przełącz na motyw ciemny'
+        theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
       "
       (click)="theme.toggle()"
     >
       <span aria-hidden="true">{{ theme.theme() === 'dark' ? '☾' : '☀' }}</span>
-      <span class="toggle__label">{{ theme.theme() === 'dark' ? 'Ciemny' : 'Jasny' }}</span>
+      <span class="toggle__label">{{ theme.theme() === 'dark' ? 'Dark' : 'Light' }}</span>
     </button>
   `,
   styles: `

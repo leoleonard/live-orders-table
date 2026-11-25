@@ -1,91 +1,36 @@
-# NOTES
+# Notes
 
-## Udział AI
+## How it was built
 
-Projekt powstał w parze z Claude Code (Claude Opus). Podział wyglądał tak:
+Built in a pair with Claude Code. The split:
 
-- **Ja**: analiza zadania, decyzje architektoniczne (poniżej), wybór stacku
-  (NgRx Signal Store, brak bibliotek UI, zakres testów), review i weryfikacja
-  każdego pliku, testy manualne w przeglądarce, treść tego pliku.
-- **AI z dużym udziałem**: szkielet projektu, większość kodu komponentów, store'ów
-  i serwisów, SCSS, testy jednostkowe, README. Kod był generowany na podstawie
-  ustalonej przeze mnie struktury i poprawiany po moim review.
-- **Samodzielnie / z niewielkim udziałem**: doprecyzowanie wymagań (np. że „open
-  price uśredniony” to średnia arytmetyczna, a nie ważona wolumenem), decyzja o
-  utrzymywaniu listy symboli do formularza niezależnie od zamkniętych zleceń,
-  weryfikacja działania WebSocketu (protokół, resubskrypcja po reconnect).
+- **Mine:** requirements analysis, the architecture and stack decisions below, review and verification of every file, manual testing in the browser, the fixes after code review.
+- **AI, under my direction:** most of the implementation of components, stores, services, styles and unit tests, generated against the structure I defined and corrected after my review.
 
-## Decyzje projektowe
+## Design decisions
 
-1. **`@ngrx/signals` (Signal Store) zamiast klasycznego NgRx Store.** Aplikacja jest
-   mała i w całości oparta na signals (zoneless, `OnPush`). Signal Store daje jawny,
-   typowany stan i metody bez akcji/reducerów/efektów. `OrdersStore` pobiera dane przez
-   `resource()` Angulara (stabilne od v22 – status/błąd/`reload()` za darmo), a lista
-   zleceń jest z nim **powiązana** przez `withLinkedState`: przeładowanie zasobu odtwarza
-   listę, a `addOrder`/`closeOrder` piszą do tego samego sygnału pomiędzy. Dostęp po id
-   zapewnia `computed` z mapą. `QuotesStore` trzyma mapę kwotowań, a stan socketu
-   wystawia przez `withProps`; `ThemeStore` motyw.
-2. **Logika domenowa jako czyste funkcje** (`core/domain`): `calculateProfit` i
-   `buildOrderGroups` nie znają Angulara, więc są trywialne w testowaniu; store'y
-   przechowują tylko surowe dane, a widok (grupy + profit) jest `computed()` w
-   kontenerze. Dzięki temu profit przelicza się automatycznie przy każdym ticku.
-3. **Kontener + komponenty prezentacyjne.** `OrdersPage` wstrzykuje store'y i
-   składa dane; `OrdersTable` i `OrderForm` dostają tylko `input()` i emitują
-   `output()`. Tabela posiada wyłącznie własny stan UI (które grupy są rozwinięte).
-4. **Brak bibliotek UI.** Zadanie wyklucza biblioteki tabel, a snackbar/formularz to
-   na tyle mało kodu, że Angular Material wnosiłby więcej (rozmiar bundle,
-   theming pod narzuconą paletę) niż daje. Snackbar to ~30 linii serwisu na signalach.
-5. **WebSocket przez `rxjs/webSocket`** z `retry` (reconnect po 2 s) i ponowną
-   subskrypcją zapamiętanych symboli po otwarciu połączenia. Lista subskrypcji jest
-   synchronizowana z symbolami, które mają otwarte zlecenia (`effect` w kontenerze),
-   więc zamknięcie ostatniego zlecenia symbolu wysyła `removelist`.
-6. **Profit `null` dopóki nie ma kwotowania** – zamiast pokazywać `0` (co byłoby
-   nieprawdą) tabela pokazuje „—”; suma grupy pomija zlecenia bez kwotowania.
-7. **Motyw**: zmienne CSS na `:root[data-theme]`; start z `prefers-color-scheme`,
-   ręczny wybór zapisywany w `localStorage` i od tego momentu zmiany systemowe
-   są ignorowane.
-8. **Formularz**: typowany `FormGroup` z `NonNullableFormBuilder`; `openPrice`
-   jest wypełniany aktualnym bidem **raz** po wyborze symbolu (gdy tylko kwotowanie
-   jest dostępne – kolejne ticki nie nadpisują pola, które użytkownik edytuje);
-   przycisk „bid: …” odświeża cenę na żądanie. Wybrany w formularzu symbol jest
-   dopisywany do listy subskrybowanych na WebSockecie, więc cena jest dostępna także
-   dla symbolu bez otwartych zleceń. Nowe zlecenie dostaje `swap = 0` i numer z licznika
-   monotonicznego (`lastIssuedId`), więc identyfikator zamkniętego zlecenia nigdy nie wraca.
-9. **Tabela**: stan „rozwinięte grupy” to `linkedSignal` zależny od listy grup, więc
-   symbol zamkniętej grupy jest automatycznie usuwany z zestawu. Rozwijanie działa
-   kliknięciem w wiersz (wymaganie) i przyciskiem z `aria-expanded` dla klawiatury /
-   czytników – bez `role="button"` na `<tr>`.
+1. **`@ngrx/signals` (Signal Store) instead of classic NgRx Store.** The app is small and signal-based end to end (zoneless, OnPush). Signal Store gives explicit, typed state and methods without actions, reducers and effects. `OrdersStore` loads data through Angular's `resource()` (status, error and `reload()` for free) and the order list is linked to it with `withLinkedState`: reloading the resource rebuilds the list, while `addOrder` / `closeOrder` write to the same signal in between.
+2. **Domain logic as pure functions** (`core/domain`). `calculateProfit` and `buildOrderGroups` know nothing about Angular, so they are trivial to test. Stores hold raw data only; the view (groups + profit) is a `computed()` in the container, so profit follows every tick automatically.
+3. **Container + presentational components.** `OrdersPage` injects the stores and composes the data; `OrdersTable` and `OrderForm` only take `input()` and emit `output()`. The table owns nothing but its UI state (which groups are expanded).
+4. **No UI library.** A table, a form and a snackbar are little code; Angular Material would add more (bundle size, theming against a fixed palette) than it gives. The snackbar is about 30 lines of signal-based service.
+5. **WebSocket through `rxjs/webSocket`** with `retry` (errors) and `repeat` (clean server close - `WebSocketSubject` _completes_ in that case), both after 2 s, and re-subscription of the remembered symbols once the connection opens. Callers only declare the wanted symbol set (`setSymbols`), so the subscription state cannot drift.
+6. **One interface, two feeds.** `SimulatedQuotesFeed` has the same public surface as `QuotesSocket` and is selected by configuration in `provideQuotesFeed()`. Stores and components do not know which one they got.
+7. **Validation at the boundary.** HTTP payloads are validated strictly - every record feeds money calculations, so a malformed one is a load error, not a silently different total. Quote frames are validated leniently - one bad entry must not tear down the stream.
+8. **Profit is `null` until a quote arrives** - the table shows a dash rather than a misleading `0`; a group total skips orders without a quote. A symbol missing from the instrument list is surfaced as an error instead of defaulting the contract size to 1.
+9. **Performance.** Groups are memoised per symbol, detail rows are built only for expanded groups, and quote frames are batched over 100 ms.
+10. **Ids from a monotonic counter**, so the id of a closed order is never reused.
+11. **Table accessibility.** Expanding works by clicking the row and by a button with `aria-expanded`; no `role="button"` on `<tr>`, which broke row semantics and caught key presses from the nested close button.
+12. **Order form.** Typed `FormGroup`; the open price is filled with the current bid once per symbol choice, so later ticks do not overwrite what the user is editing. The selected symbol is added to the watched set, so a price is available even for a symbol with no open orders.
 
-### Co odrzuciłem / zmieniłem po code review
+## Rejected along the way
 
-- pierwszą wersję API `QuotesStore.syncSubscriptions(symbols, previous)`, która
-  wymagała przekazywania poprzedniego stanu – zastąpiona przez `setSymbols()` w
-  serwisie socketu, który sam zna swoje subskrypcje;
-- `[disabled]` na przycisku „Dodaj zlecenie” – gorsza dostępność, a walidacja po
-  `markAllAsTouched()` i tak pokazuje błędy;
-- pierwszą wersję ładowania danych przez `rxMethod` + `tapResponse` z ręcznie
-  utrzymywanym `status`/`error` – zastąpiona przez `resource()`;
-- reconnect WebSocketu tylko przez `retry` – `WebSocketSubject` przy czystym
-  zamknięciu przez serwer *kończy* strumień, więc potrzebny jest też `repeat`;
-- `role="button"` + `keydown` na `<tr>` – klawisze na zagnieżdżonym przycisku
-  „zamknij” przechodziły do wiersza i przełączały grupę; `<tr>` tracił semantykę.
+- `QuotesStore.syncSubscriptions(symbols, previous)`, which made the caller pass the previous state - replaced by `setSymbols()` on the socket, which knows its own subscriptions.
+- `[disabled]` on the submit button - worse accessibility; validation after `markAllAsTouched()` shows the errors anyway.
+- Loading through `rxMethod` + `tapResponse` with hand-maintained status and error - replaced by `resource()`.
+- Effects that copied data between pieces of state - replaced by declarative linking (`withLinkedState`, `linkedSignal`).
 
-## Po feedbacku z code review
+## With more time
 
-Po otrzymaniu feedbacku poprawiłem wskazane kwestie (po jednym commicie na temat):
-usunięta nieużywana zależność i stub testowy poza kodem produkcyjnym, zawężone publiczne
-API `QuotesSocket`, walidacja payloadów HTTP/WS na granicy aplikacji (strict dla HTTP,
-pobłażliwa dla strumienia cen), jawny błąd zamiast `contractSize = 1`, monotoniczny licznik
-identyfikatorów, zapominanie ceny przy `removelist`, usunięta zależność efektu subskrypcji
-od stanu połączenia, deklaratywne wiązanie stanu (`withLinkedState`) zamiast efektów
-przenoszących dane oraz memoizacja grup per symbol wraz z budowaniem wierszy szczegółowych
-tylko dla rozwiniętych grup i kubełkowaniem kwotowań (100 ms).
-
-## Co bym zmienił mając więcej czasu
-
-- testy komponentów (rozwijanie grup, emitowanie zdarzeń, walidacja formularza)
-  i test `QuotesSocket` z zamockowanym `WebSocket` (reconnect, resubskrypcja);
-- wirtualizację / paginację tabeli – memoizacja per symbol i kubełkowanie ticków są już
-  zrobione, ale przy tysiącach wierszy sam DOM stałby się wąskim gardłem;
-- i18n (teksty są po polsku na sztywno), formatowanie liczb z `LOCALE_ID`;
-- sortowanie / filtrowanie kolumn, potwierdzenie przed zamknięciem grupy.
+- component tests (expanding groups, emitted events, form validation) and a `QuotesSocket` test against a mocked `WebSocket` (reconnect, re-subscription)
+- virtualisation or pagination - with thousands of rows the DOM itself becomes the bottleneck
+- i18n (copy is hard-coded) and number formatting from `LOCALE_ID`

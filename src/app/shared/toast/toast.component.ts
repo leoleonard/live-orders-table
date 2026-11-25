@@ -13,7 +13,7 @@ import { ToastService } from './toast.service';
             type="button"
             class="toast__close"
             (click)="toasts.dismiss(toast.id)"
-            aria-label="Zamknij komunikat"
+            aria-label="Dismiss message"
           >
             ×
           </button>
