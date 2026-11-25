@@ -88,10 +88,10 @@ export class OrdersPageComponent {
 
   protected onNewOrder(order: NewOrder): void {
     const created = this.ordersStore.addOrder(order);
-    this.toast.show(`Dodano zlecenie nr ${created.id}`);
+    this.toast.show(`Order #${created.id} added`);
   }
 
   private notifyClosed(ids: number[]): void {
-    this.toast.show(`Zamknięto zlecenie nr ${ids.join(', ')}`);
+    this.toast.show(`Closed order ${ids.map((id) => '#' + id).join(', ')}`);
   }
 }

@@ -33,4 +33,4 @@ Built in a pair with Claude Code. The split:
 
 - component tests (expanding groups, emitted events, form validation) and a `QuotesSocket` test against a mocked `WebSocket` (reconnect, re-subscription)
 - virtualisation or pagination - with thousands of rows the DOM itself becomes the bottleneck
-- i18n (copy is hard-coded in Polish) and number formatting from `LOCALE_ID`
+- i18n (copy is hard-coded) and number formatting from `LOCALE_ID`

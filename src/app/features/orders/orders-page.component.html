@@ -9,19 +9,19 @@
   <div class="status" aria-live="polite">
     @switch (ordersStore.status()) {
       @case ('loading') {
-        <span class="muted">Ładowanie zleceń…</span>
+        <span class="muted">Loading orders…</span>
       }
       @case ('reloading') {
-        <span class="muted">Ładowanie zleceń…</span>
+        <span class="muted">Loading orders…</span>
       }
       @case ('error') {
-        <span class="error">Nie udało się pobrać danych: {{ ordersStore.error() }}</span>
-        <button type="button" class="retry" (click)="ordersStore.reload()">Spróbuj ponownie</button>
+        <span class="error">Could not load data: {{ ordersStore.error() }}</span>
+        <button type="button" class="retry" (click)="ordersStore.reload()">Try again</button>
       }
       @default {
         <span class="muted">
-          Zleceń: {{ ordersStore.orders().length }} · grup: {{ groups().length }} · kwotowania:
-          {{ quotesStore.connected() ? 'połączono' : 'rozłączono' }}
+          Orders: {{ ordersStore.orders().length }} · groups: {{ groups().length }} · quotes:
+          {{ quotesStore.connected() ? 'connected' : 'disconnected' }}
         </span>
       }
     }

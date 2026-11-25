@@ -4,7 +4,7 @@ A trading-style orders table in Angular 22: orders grouped by symbol, profit rec
 
 **Live demo:** https://leoleonard.github.io/live-orders-table/
 
-The demo runs without a backend: it loads bundled sample data and a simulated quote feed. Point `API_CONFIG` at real endpoints and the same code talks to an HTTP API and a quotes WebSocket (with reconnect and re-subscription). UI copy is in Polish.
+The demo runs without a backend: it loads bundled sample data and a simulated quote feed. Point `API_CONFIG` at real endpoints and the same code talks to an HTTP API and a quotes WebSocket (with reconnect and re-subscription).
 
 Design decisions and how the project was built: [NOTES.md](./NOTES.md).
 

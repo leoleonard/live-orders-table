@@ -27,7 +27,7 @@ describe('App', () => {
     http.expectOne((req) => req.url.endsWith('contract-types.json')).flush([]);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('h1')?.textContent).toContain('Zlecenia');
+    expect(el.querySelector('h1')?.textContent).toContain('Orders');
     expect(el.querySelector('app-orders-page')).not.toBeNull();
   });
 });
